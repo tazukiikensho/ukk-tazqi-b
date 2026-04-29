@@ -8,9 +8,21 @@ class Transaksi extends Model
 {
     protected $table = 'transaksis';
 
-    protected $fillable = ['tanggal', 'total'];
+    protected $fillable = [
+    'trx_id',
+    'tanggal',
+    'total',
+    'kasir',
+    'customer',
+    'tipe',
+    'meja',
+    'metode_pembayaran',
+    'bayar',
+    'kembali'
+];
 
-    public function detail() {
-        return $this->hasMany(DetailTransaksi::class);
-    }
+   public function detail()
+{
+    return $this->hasMany(DetailTransaksi::class);
+}
 }

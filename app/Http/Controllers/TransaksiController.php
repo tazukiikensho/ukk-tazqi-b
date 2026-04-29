@@ -16,37 +16,44 @@ class TransaksiController extends Controller
         return view('transaksi.index', compact('menu'));
     }
 
-    public function store(Request $request)
-    {
-        $transaksi = Transaksi::create([
-            'tanggal' => now(),
-            'total' => 0
+public function store(Request $request)
+{
+    $total = 0;
+
+    // generate trx id
+    $trx_id = 'TRX' . date('YmdHis');
+
+  $transaksi = Transaksi::create([
+    'trx_id' => $trx_id,
+    'tanggal' => now(),
+    'total' => 0,
+    'kasir' => session('user')->name ?? 'Kasir',
+    'customer' => $request->customer ?? '-',
+    'tipe' => $request->tipe ?? 'takeaway',
+    'meja' => $request->meja ?? '-',
+    'metode_pembayaran' => $request->metode ?? 'cash',
+    'bayar' => $request->bayar ?? 0,
+    'kembali' => 0
+]);
+
+    foreach ($request->menu as $item) {
+        $subtotal = $item['qty'] * $item['harga'];
+
+        DetailTransaksi::create([
+            'transaksi_id' => $transaksi->id,
+            'menu_id' => $item['id'],
+            'qty' => $item['qty'],
+            'subtotal' => $subtotal
         ]);
 
-        $total = 0;
-
-        foreach ($request->menu as $item) {
-            $subtotal = $item['qty'] * $item['harga'];
-
-            DetailTransaksi::create([
-                'transaksi_id' => $transaksi->id,
-                'menu_id' => $item['id'],
-                'qty' => $item['qty'],
-                'subtotal' => $subtotal
-            ]);
-
-            $total += $subtotal;
-        }
-
-        // update total transaksi
-        $transaksi->update(['total' => $total]);
-
-        // ✅ CATAT LOG TRANSAKSI
-        Log::create([
-            'user' => session('user')->email,
-            'aktivitas' => 'Melakukan transaksi dengan total Rp ' . $total
-        ]);
-
-        return redirect('/transaksi')->with('success', 'Transaksi berhasil');
+        $total += $subtotal;
     }
+
+    $transaksi->update([
+        'total' => $total,
+        'kembali' => ($request->bayar ?? 0) - $total
+    ]);
+
+    return redirect('/struk/' . $transaksi->id);
+}
 }

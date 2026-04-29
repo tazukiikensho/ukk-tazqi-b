@@ -7,6 +7,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Manajer\MenuController;
 use App\Http\Controllers\Admin\UserController;
 use App\Models\Log;
+use App\Models\Transaksi;
 
 
 /*
@@ -34,6 +35,10 @@ Route::get('/', function () {
 */
 Route::get('/transaksi', [TransaksiController::class, 'index']);
 Route::post('/transaksi', [TransaksiController::class, 'store']);
+Route::get('/struk/{id}', function ($id) {
+    $transaksi = Transaksi::with('detail.menu')->find($id);
+    return view('transaksi.struk', compact('transaksi'));
+});
 
 /*
 |--------------------------------------------------------------------------
